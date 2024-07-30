@@ -3,7 +3,9 @@ import numpy as np
 import scipy.io
 import h5py
 from numpy import int8
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
+
+
 def TestResult(x, S):
     if x:
         print(f"Our test for {S} was Successful!")
@@ -25,76 +27,71 @@ def selfTesting(filename, stringValue, floatValue, int8Value):
     myInt8B = data['int8_data'].item()
     TestResult(myInt8B == int8Value, "Int8")
 def serializing_Py(filename, originalString, originalFloat, originalInt8):
-    # Save each variable separately to a .mat file
-    savemat(filename, {'stringValue': originalString, 'floatValue': originalFloat, 'int8Value': np.array([originalInt8], dtype=np.int8)})
-
+    # Save all variables as a dictionary to a .mat file
+    data_dict = {
+        'string_data': originalString,
+        'float_data': originalFloat,
+        'int8_data': np.array([originalInt8], dtype=np.int8)
+    }
+    savemat(filename, data_dict)
     print("The data has been serialized through Python")
 def deserializingSerializing_PyMAT(filename, originalString, originalFloat, originalInt8):
     # Open the HDF5 file for reading
     with h5py.File(filename, 'r') as file:
-        # Read and decode the string data
-        # UTF-16  can handle the null Characters
-        stringValueB = file['stringValue'][...].tobytes().decode('utf-16')
-        # Read the float data
-        floatValueB = file['floatValue'][0][0]
-        # Read the int8 data
-        int8ValueB = file['int8Value'][0][0]
+        stringValueB = file['string_data'][()].tobytes().decode('utf-16')
+        floatValueB = file['float_data'][()]
+        int8ValueB = file['int8_data'][()]
 
     TestResult(stringValueB == originalString, "String")
     TestResult(floatValueB == originalFloat, "Float")
     TestResult(int8ValueB == originalInt8, "Int8")
 
-    savemat('mydata.mat', {'stringValue': stringValueB, 'floatValue': floatValueB, 'int8Value': np.array([int8ValueB], dtype=np.int8)})
+    data_dict = {
+        'string_data': stringValueB,
+        'float_data': floatValueB,
+        'int8_data': np.array([int8ValueB], dtype=np.int8)
+    }
+
+    savemat(filename, data_dict)
 
     print("The data has been serialized back through Python!")
 def deserializingSerializing_PyJl(filename, originalString, originalFloat, originalInt8):
-    # Open the HDF5 file for reading
     with h5py.File(filename, 'r') as file:
-        # Read and decode the string data
-        string_value_bytes = file['stringValue'][()]
+        string_value_bytes = file['string_data'][()]
         stringValue = string_value_bytes.tobytes().decode('utf-8').replace('\x00', '')
-        # Read the float data
-        floatValue = file['floatValue'][()]
-        # Read the int8 data
-        int8Value = file['int8Value'][()]
+        floatValue = file['float_data'][()]
+        int8Value = file['int8_data'][()]
 
     TestResult(stringValue == originalString, "String")
     TestResult(floatValue == originalFloat, "Float")
     TestResult(int8Value == originalInt8, "Int8")
 
-    # Prepare data for writing back to a .mat file
-    mat_data = {
-        'loadedStringValue': np.array([stringValue], dtype='S'),
-        'loadedFloatValue': np.array([floatValue]),
-        'loadedInt8Value': np.array([int8Value], dtype=np.int8)
+    data_dict = {
+        'string_data': stringValue,
+        'float_data': floatValue,
+        'int8_data': np.array([int8Value], dtype=np.int8)
     }
 
-    savemat(filename, mat_data)
+    savemat(filename, data_dict)
     print("The data has been serialized back through Python!")
 def deserializing_PyMAT(filename, originalString, originalFloat, originalInt8):
-    # Open the HDF5 file for reading
+    # Load the data from the .mat file
     with h5py.File(filename, 'r') as file:
-        # Read and decode the string data
-        # UTF-16  can handle the null Characters
-        stringValueB = file['loadedStringValue'][...].tobytes().decode('utf-16')
-        # Read the float data
-        floatValueB = file['loadedFloatValue'][0][0]
-        # Read the int8 data
-        int8ValueB = file['loadedInt8Value'][0][0]
+        stringValueB = file['string_data'][()].tobytes().decode('utf-16')
+        floatValueB = file['float_data'][()]
+        int8ValueB = file['int8_data'][()]
 
+    # Test the deserialized values
     TestResult(stringValueB == originalString, "String")
     TestResult(floatValueB == originalFloat, "Float")
     TestResult(int8ValueB == originalInt8, "Int8")
 def deserializing_PyJl(filename, originalString, originalFloat, originalInt8):
-
+    # Open the HDF5 file for reading
     with h5py.File(filename, 'r') as file:
-        # Read and decode the string data
-        string_value_bytes = file['stringValue'][()]
+        string_value_bytes = file['string_data'][()]
         stringValue = string_value_bytes.tobytes().decode('utf-8').replace('\x00', '')
-        # Read the float data
-        floatValue = file['floatValue'][()]
-        # Read the int8 data
-        int8Value = file['int8Value'][()]
+        floatValue = file['float_data'][()]
+        int8Value = file['int8_data'][()]
 
     TestResult(stringValue == originalString, "String")
     TestResult(floatValue == originalFloat, "Float")

@@ -4,10 +4,10 @@ JULIA_EXEC="julia"
 MATLAB_EXEC="/Applications/MATLAB_R2024a.app/bin/matlab"
 
 # SCRIPT PATHS
-PYTHON_SCRIPT="/Users/elinarezaeian/PycharmProjects/HDF5-Testing/Main.py"
+PYTHON_SCRIPT="/Users/elinarezaeian/PycharmProjects/HDF5Project/Main.py"
 JULIA_SCRIPT="/Users/elinarezaeian/Julia/Julia0.jl"
-MATLAB_SCRIPT="/Users/elinarezaeian/MATLAB/Projects/TestingHDF5"
-MATLAB_DIR="/Users/elinarezaeian/MATLAB/Projects/TestingHDF5"
+MATLAB_SCRIPT="/Users/elinarezaeian/MATLAB/Projects/MainProject/"
+MATLAB_DIR="/Users/elinarezaeian/MATLAB/Projects/MainProject/"
 
 
 # Arguments
