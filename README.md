@@ -22,6 +22,7 @@ The project focuses on the serialization and deserialization of various data typ
 3. **Julia0.jl**: Julia script for handling HDF5 file operations.
 4. **run.sh**: Shell script to run the above scripts sequentially in a UNIX shell, providing an automated workflow.
 
+
 ### Data Type Compatibility
 
 There are several data types that MATLAB does not natively support, such as:

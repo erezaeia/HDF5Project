@@ -35,25 +35,22 @@ end
 # Function for serialize_data
 function serialize_data(filename::String, stringValue::String, floatValue::Float64, int8Value::Int8)
     # Create and write to a .mat file
-    matopen(filename, "w") do file
-        write(file, "stringValue", stringValue)
-        write(file, "floatValue", floatValue)
-        write(file, "int8Value", int8Value)
-    end
+    matwrite(filename, Dict(
+        "string_data" => stringValue,
+        "float_data" => floatValue,
+        "int8_data" => int8Value
+    ))
     println("The data has been serialized through Julia! ")
 end
 # Function for deserialize_data
 function deserialize_data(filename::String, stringValue::String, floatValue::Float64, int8Value::Int8)
     # Open the .mat file for reading
-    file = matopen(filename, "r")
+    data = matread(filename)
 
     # Read the variables
-    loadedStringValue = read(file, "loadedStringValue")
-    loadedFloatValue = read(file, "loadedFloatValue")
-    loadedInt8Value = read(file, "loadedInt8Value")
-
-    # Close the file
-    close(file)
+    loadedStringValue = data["string_data"]
+    loadedFloatValue = data["float_data"]
+    loadedInt8Value = data["int8_data"]
 
     # Test the deserialized values
     TestResult(loadedStringValue == stringValue, "String")
@@ -63,15 +60,12 @@ end
 # Function for deserializeSerialize_data
 function deserializeSerialize_data(filename::String, stringValue::String, floatValue::Float64, int8Value::Int8)
     # Open the .mat file for reading
-    file = matopen(filename, "r")
+    data = matread(filename)
 
     # Read the variables
-    loadedStringValue = read(file, "stringValue")
-    loadedFloatValue = read(file, "floatValue")
-    loadedInt8Value = read(file, "int8Value")
-
-    # Close the file
-    close(file)
+    loadedStringValue = data["string_data"]
+    loadedFloatValue = data["float_data"]
+    loadedInt8Value = data["int8_data"]
 
     # Test the deserialized values
     TestResult(loadedStringValue == stringValue, "String")
@@ -79,13 +73,13 @@ function deserializeSerialize_data(filename::String, stringValue::String, floatV
     TestResult(loadedInt8Value == int8Value, "Int8")
 
     # Serialize the data back to the .mat file
-    matopen(filename, "w") do file
-        write(file, "stringValue", loadedStringValue)
-        write(file, "floatValue", loadedFloatValue)
-        write(file, "int8Value", loadedInt8Value)
-    end
+    matwrite(filename, Dict(
+        "string_data" => loadedStringValue,
+        "float_data" => loadedFloatValue,
+        "int8_data" => loadedInt8Value
+    ))
 
-    println("The data has been serialized back through Julia! ")
+    println("The data has been serialized back through Julia!")
 end
 # Function to handle command-line arguments and call the appropriate function
 function MainFunction()
