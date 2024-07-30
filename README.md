@@ -53,29 +53,6 @@ These tests help us ensure that data integrity is maintained and identify any co
 - **Supported Data Types**: Most data types are successfully handled across all three languages.
 - **Unsupported Data Types**: The only failed cases identified so far are `Int128` and `UInt128`, which are not supported by MATLAB.
 
-## Project Structure
-
-```plaintext
-project-root/
-├── Main.m               # MATLAB script for HDF5 operations
-├── Main.py              # Python script for HDF5 operations
-├── Julia0.jl            # Julia script for HDF5 operations
-├── run.sh               # Shell script to run the above scripts
-├── README.md            # Project documentation (this file)
-└── tests/               # Directory containing test scripts and data (not part of the main project)
-    ├── Deserializing-MAT.jl
-    ├── Deserializing-Py.jl
-    ├── DeserializingSerializing-Mat.jl
-    ├── DeserializingSerializing-Py.jl
-    ├── SelfTest.jl
-    ├── SelfTesting.jl
-    ├── Serializing-Mat.jl
-    ├── Serializing-Py.jl
-    ├── deserializeSerialize_data.jl
-    ├── deserialize_data.jl
-    ├── example.h5
-    ├── serialize_data.jl
-
 ## How to Run the Project
 
 1. **Prerequisites**:
@@ -123,6 +100,31 @@ For more information about LIINES, visit [LIINES Lab](https://liines.net).
 For any questions or suggestions, please contact:
 - **Elina Rezaeian**: [erezaeia@stevens.edu](mailto:erezaeia@stevens.edu)
 - **LinkedIn**: [Elina Rezaeian](https://www.linkedin.com/in/elina-rezaeian-714b94271/)
+
+## Project Structure
+
+```plaintext
+project-root/
+├── Main.m               # MATLAB script for HDF5 operations
+├── Main.py              # Python script for HDF5 operations
+├── Julia0.jl            # Julia script for HDF5 operations
+├── run.sh               # Shell script to run the above scripts
+├── README.md            # Project documentation (this file)
+└── tests/               # Directory containing test scripts and data (not part of the main project)
+    ├── Deserializing-MAT.jl
+    ├── Deserializing-Py.jl
+    ├── DeserializingSerializing-Mat.jl
+    ├── DeserializingSerializing-Py.jl
+    ├── SelfTest.jl
+    ├── SelfTesting.jl
+    ├── Serializing-Mat.jl
+    ├── Serializing-Py.jl
+    ├── deserializeSerialize_data.jl
+    ├── deserialize_data.jl
+    ├── example.h5
+    ├── serialize_data.jl
+
+
 
 
 
