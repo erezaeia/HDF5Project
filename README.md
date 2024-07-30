@@ -76,25 +76,54 @@ project-root/
     ├── example.h5
     ├── serialize_data.jl
 
-Results and Discussion
+## How to Run the Project
 
-The project aims to provide a comprehensive understanding of how HDF5 file operations can be seamlessly integrated across MATLAB, Python, and Julia. Our initial tests have shown promising results, except for the noted limitations with Int128 and UInt128 data types in MATLAB.
+1. **Prerequisites**:
+   - Ensure MATLAB, Python, and Julia are installed on your system.
+   - Install necessary packages and libraries for HDF5 operations in each language.
 
-Future Work
+2. **Update the Script Paths**:
+   - Edit the `run.sh` script and update the paths to the `Main.m`, `Main.py`, and `Julia0.jl` scripts after saving them in the correct locations.
 
-	•	Expand Data Type Testing: Include more complex and custom data types.
-	•	Performance Benchmarking: Analyze the performance of HDF5 operations across the three languages.
-	•	Enhanced Automation: Develop more robust automation scripts and error handling.
+3. **Make the `run.sh` File Executable**:
+   - Open the terminal and navigate to the project directory.
+   - Make the `run.sh` file executable:
+     ```sh
+     chmod +x run.sh
+     ```
 
-Acknowledgments
+4. **Run the `run.sh` Script**:
+   - Execute the `run.sh` script in the terminal:
+     ```sh
+     ./run.sh
+     ```
+
+### How the `run.sh` Script Works
+
+In the `run.sh` script, we call functions from each file (`Main.m`, `Main.py`, `Julia0.jl`) to perform serialization and deserialization operations on the tests separately. This ensures that all operations are automated and run sequentially.
+
+## Results and Discussion
+
+The project aims to provide a comprehensive understanding of how HDF5 file operations can be seamlessly integrated across MATLAB, Python, and Julia. Our initial tests have shown promising results, except for the noted limitations with `Int128` and `UInt128` data types in MATLAB.
+
+## Future Work
+
+- **Expand Data Type Testing**: Include more complex and custom data types.
+- **Performance Benchmarking**: Analyze the performance of HDF5 operations across the three languages.
+- **Enhanced Automation**: Develop more robust automation scripts and error handling.
+
+## Acknowledgments
 
 This project is conducted at the Laboratory for Intelligent Integrated Networks of Engineering Systems (LIINES) under the guidance of Dr. Amro Farid. Special thanks to the LIINES team for their support and collaboration.
 
-For more information about LIINES, visit LIINES Lab.
+For more information about LIINES, visit [LIINES Lab](https://liines.net).
 
-Contact
+## Contact
 
 For any questions or suggestions, please contact:
+- **Elina Rezaeian**: [erezaeia@stevens.edu](mailto:erezaeia@stevens.edu)
+- **LinkedIn**: [Elina Rezaeian](https://www.linkedin.com/in/elina-rezaeian-714b94271/)
 
-	•	Elina Rezaeian: erezaeia@stevens.edu
-	•	LinkedIn: Elina Rezaeian
+
+
+
