@@ -43,7 +43,8 @@ end
 
 function serialize_data(filename, stringValue, floatValue, int8Value)
     % Save data to .mat file
-    save(filename, 'stringValue', 'floatValue', 'int8Value', '-v7.3');
+    data_dict = struct('string_data', stringValue, 'float_data', floatValue, 'int8_data', int8Value);
+    save(filename, '-struct', 'data_dict', '-v7.3');
     disp("The data has been serialized through MATLAB");
 end
 
@@ -51,9 +52,9 @@ function deserialize_data(filename, sValue, fValue, i8Value)
     % Load data from .mat file
     data = load(filename);
 
-    loadedStringValue = data.stringValue;
-    loadedFloatValue = data.floatValue;
-    loadedInt8Value = data.int8Value;
+    loadedStringValue = data.string_data;
+    loadedFloatValue = data.float_data;
+    loadedInt8Value = data.int8_data;
 
     TestResult(strcmp(loadedStringValue, sValue), 'String');
     TestResult(loadedFloatValue == fValue, 'Float');
@@ -64,16 +65,17 @@ function deserializeSerialize_data(filename, sValue, fValue, i8Value)
     % Load data from .mat file
     data = load(filename);
 
-    loadedStringValue = data.stringValue;
-    loadedFloatValue = data.floatValue;
-    loadedInt8Value = data.int8Value;
+    loadedStringValue = data.string_data;
+    loadedFloatValue = data.float_data;
+    loadedInt8Value = data.int8_data;
 
     TestResult(strcmp(loadedStringValue, sValue), 'String');
     TestResult(loadedFloatValue == fValue, 'Float');
     TestResult(loadedInt8Value == i8Value, 'Int8');
 
     % Save data back to .mat file
-    save(filename, 'loadedStringValue', 'loadedFloatValue', 'loadedInt8Value', '-v7.3');
+    data_dict = struct('string_data', loadedStringValue, 'float_data', loadedFloatValue, 'int8_data', loadedInt8Value);
+    save(filename, '-struct', 'data_dict', '-v7.3');
     disp('The data has been serialized back through MATLAB!');
 end
 
