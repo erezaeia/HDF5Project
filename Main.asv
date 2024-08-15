@@ -128,10 +128,18 @@ function serialize_data(filename, data_dict)
     try
         % Decode JSON string to a structure
         data_struct = jsondecode(data_dict);
-
-        % Ensure that uint64 and int64 types are correctly preserved
-        data_struct.uint64_data = uint64(data_struct.uint64_data);
-        data_struct.int64_data = int64(data_struct.int64_data);
+        
+         % % Explicitly ensure Int64 types are preserved
+         % fields = fieldnames(data_struct);
+         % for i = 1:numel(fields)
+         %     field = fields{i};
+         %     if isnumeric(data_struct.(field)) && mod(data_struct.(field), 1) == 0
+         %         if max(abs(data_struct.(field))) > intmax('int32') 
+         %             data_struct.(field) = int64(data_struct.(field)); % Force as Int64 if larger than Int32 range
+         %         end
+         % 
+         %     end
+         % end
 
         % Save data to .mat file
         save(filename, '-struct', 'data_struct', '-v7.3');
@@ -176,6 +184,8 @@ function deserialize_data(filename, originalString, originalFloat, originalInt8,
                 TestResult(uint32Value == originalUInt32, 'UInt32');
             elseif strcmp(key, 'int64_data')
                 int64Value = int64(data.(key));
+                disp(int64Value)
+                disp(originalInt64)
                 TestResult(isequal(int64Value, originalInt64), 'Int64');
             elseif strcmp(key, 'uint64_data')
                 uint64Value = uint64(data.(key));
@@ -193,9 +203,10 @@ function deserialize_data(filename, originalString, originalFloat, originalInt8,
                 charValue = data.(key);
                 TestResult(charValue == originalChar, 'Char');
             elseif strcmp(key, 'complex_data')
-                complexValue = complex(data.(key));
-                TestResult(complexValue == originalComplex, 'Complex');
-            
+                 complexValue = data.(key);
+                 disp(complexValue)
+                 disp(originalComplex)
+                 TestResult(isequal(complexValue, originalComplex), 'Complex');
             else
                 disp(['Unknown data type for key: ', key]);
             end
@@ -252,8 +263,6 @@ function deserializeSerialize_data(filename, originalString, originalFloat, orig
                 data.int64_data = int64Value;
             elseif strcmp(key, 'uint64_data')
                 uint64Value = uint64(data.(key));
-                disp(uint64Value)
-                disp(originalUInt64)
                 TestResult(uint64Value == originalUInt64, 'UInt64');
                 data.uint64_data = uint64Value;
             elseif strcmp(key, 'float16_data')
@@ -275,7 +284,7 @@ function deserializeSerialize_data(filename, originalString, originalFloat, orig
             elseif strcmp(key, 'complex_data')
                 complexValue = str2num(data.(key));
                 TestResult(isequal(complexValue, originalComplex), 'Complex');
-                data.complex_data = complexValue;
+                data.complex_data = data.(key);
             else
                 disp(['Unknown data type for key: ', key]);
             end
