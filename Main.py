@@ -6,14 +6,17 @@ import h5py
 import scipy
 from numpy import int8
 from scipy.io import savemat, loadmat
-
+from datetime import datetime, timedelta, date
+from decimal import Decimal
+from fractions import Fraction
 
 def TestResult(x, S):
     if x:
         print(f"{S} ---> Successful!")
     else:
         print(f"\033[91m{S} ---> Failed!***\033[0m")
-def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue):
+def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
+                decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue):
     savemat(filename, {
         'string_data': stringValue,
         'float_data': np.array([floatValue], dtype=np.float64),
@@ -29,7 +32,13 @@ def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16V
         'float32_data': np.array([float32Value], dtype=np.float32),
         'bool_data': np.array([boolValue], dtype=np.bool_),
         'char_data': np.array([charValue], dtype=np.str_),
-        'complex_data': np.array([complexValue], dtype=np.complex64)
+        'complex_data': np.array([complexValue], dtype=np.complex64),
+        'decimal_data': str(decimalValue),
+        'fraction_data': str(fractionValue),
+        'bigint_data': str(bigIntValue),
+        'nan_data': np.array([nanValue], dtype=np.float64),
+        'duration_data': durationValue.total_seconds(),  # Store as seconds (float)
+        'datetime_data': datetimeValue.isoformat()  # Store as ISO string
         })
 
     data = scipy.io.loadmat(filename)
@@ -50,14 +59,26 @@ def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16V
     TestResult(boolValue == data['bool_data'].item(), "Boolean")
     TestResult(charValue == data['char_data'].item(), "Character")
     TestResult(complexValue == data['complex_data'].item(), "Complex")
+    TestResult(decimalValue == Decimal(data['decimal_data'].item()), "Decimal")
+    TestResult(fractionValue == Fraction(data['fraction_data'].item()), "Fraction")
+    TestResult(bigIntValue == int(data['bigint_data'].item()), "BigInt")
+    TestResult(np.isnan(data['nan_data'].item()), "NaN")
+    TestResult(durationValue.total_seconds() == float(data['duration_data'].item()), "Duration")
+    TestResult(datetimeValue.isoformat() == data['datetime_data'].item(), "Datetime")
+
+
 def serializing_Py(filename, data_dict):
     try:
         data_dict = json.loads(data_dict)
+        # Convert 'nan_data' to NaN if it exists
+        if 'nan_data' in data_dict:
+            data_dict['nan_data'] = np.nan
+
         savemat(filename, data_dict)
         print("The data has been serialized through Python")
     except Exception as e:
         print(f"An error occurred: {e}")
-def deserializingSerializing_Py(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex):
+def deserializingSerializing_Py(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime):
     try:
         # Open the HDF5 file for reading
         with h5py.File(filename, 'r') as file:
@@ -148,6 +169,30 @@ def deserializingSerializing_Py(filename, originalString, originalFloat, origina
                         complexValue = complex(real_part, imag_part)
                         TestResult(complexValue == originalComplex, "Complex")
                         data_dict[key] = complexValue
+            elif key == 'decimal_data':
+                loadedDecimalValue = Decimal(value.tobytes().decode('utf-16'))
+                TestResult(loadedDecimalValue == originalDecimal, "Decimal")
+                data_dict[key] = str(loadedDecimalValue)
+            elif key == 'fraction_data':
+                loadedFractionValue = Fraction(value.tobytes().decode('utf-16'))
+                TestResult(loadedFractionValue == originalFraction, "Fraction")
+                data_dict[key] = str(loadedFractionValue)
+            elif key == 'bigint_data':
+                loadedBigIntValue = int(value.tobytes().decode('utf-16'))
+                TestResult(loadedBigIntValue == originalBigInt, "BigInt")
+                data_dict[key] = str(loadedBigIntValue)
+            elif key == 'nan_data':
+                TestResult(np.isnan(value), "NaN")
+                data_dict[key] = np.nan
+            elif key == 'duration_data':
+
+                loadedDurationValue = timedelta(seconds=float(value.item() if isinstance(value, np.ndarray) else value))
+                TestResult(loadedDurationValue.total_seconds() == originalDuration.total_seconds(), "Duration")
+                data_dict[key] = loadedDurationValue.total_seconds()
+            elif key == 'datetime_data':
+                loadedDatetimeValue = datetime.fromisoformat(value.tobytes().decode('utf-16'))  # Convert string back to datetime
+                TestResult(loadedDatetimeValue == originalDatetime, "Datetime")
+                data_dict[key] = loadedDatetimeValue.isoformat()
             else:
                 print(f"Unknown data type for key: {key}")
 
@@ -156,7 +201,7 @@ def deserializingSerializing_Py(filename, originalString, originalFloat, origina
         print("The data has been serialized back through Python!")
     except Exception as e:
         print(f"An error occurred: {e}")
-def deserializing_Py(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex):
+def deserializing_Py(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime):
     try:
         # Open the HDF5 file for reading
         with h5py.File(filename, 'r') as file:
@@ -225,7 +270,27 @@ def deserializing_Py(filename, originalString, originalFloat, originalInt8, orig
                         real_part, imag_part = value[0]
                         complexValue = complex(real_part, imag_part)
                         TestResult(complexValue == originalComplex, "Complex")
-
+            elif key == 'decimal_data':
+                loadedDecimalValue = Decimal(value.tobytes().decode('utf-16'))
+                TestResult(loadedDecimalValue == originalDecimal, "Decimal")
+            elif key == 'fraction_data':
+                loadedFractionValue = Fraction(value.tobytes().decode('utf-16'))
+                TestResult(loadedFractionValue == originalFraction, "Fraction")
+            elif key == 'bigint_data':
+                decoded_value = value.tobytes().decode('utf-16')
+                # If the string has a decimal point, remove it
+                if '.' in decoded_value:
+                    decoded_value = decoded_value.split('.')[0]
+                loadedBigIntValue = int(decoded_value)
+                TestResult(loadedBigIntValue == originalBigInt, "BigInt")
+            elif key == 'nan_data':
+                TestResult(np.isnan(value), "NaN")
+            elif key == 'duration_data':
+                loadedDurationValue = timedelta(seconds=float(value.item() if isinstance(value, np.ndarray) else value))
+                TestResult(loadedDurationValue.total_seconds() == originalDuration.total_seconds(), "Duration")
+            elif key == 'datetime_data':
+                loadedDatetimeValue = datetime.fromisoformat(value.tobytes().decode('utf-16'))  # Convert string back to datetime
+                TestResult(loadedDatetimeValue == originalDatetime, "Datetime")
             else:
                 print(f"Unknown data type for key: {key}")
 
@@ -241,7 +306,7 @@ def main():
     filename = sys.argv[2]
 
     if command == 'selfTesting':
-        if len(sys.argv) < 17:
+        if len(sys.argv) < 23:
             print(f"Usage: python Main.py {command} <filename> <stringValue> <floatValue> <int8Value>")
             sys.exit(1)
         stringValue = sys.argv[3]
@@ -254,15 +319,20 @@ def main():
         uint32Value = np.uint32(int(sys.argv[10]))
         int64Value = np.int64(int(sys.argv[11]))
         uint64Value = np.uint64(int(sys.argv[12]))
-        # int128Value = np.int64(int(sys.argv[13]))  # int128 is not directly supported
-        # uint128Value = np.uint64(int(sys.argv[14]))  # uint128 is not directly supported
         float16Value = np.float16(sys.argv[13])
         float32Value = np.float32(sys.argv[14])
         boolValue = bool(sys.argv[15])
         charValue = sys.argv[16]
         complexValue = complex(sys.argv[17])
+        decimalValue = Decimal(sys.argv[18])
+        fractionValue = Fraction(sys.argv[19])
+        bigIntValue = int(sys.argv[20])
+        nanValue = float(sys.argv[21])
+        durationValue = timedelta(seconds=float(sys.argv[22]))
+        datetimeValue = datetime.fromisoformat(sys.argv[23])
         selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value,
-                    uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue)
+                    uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
+                    decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
     elif command == 'serializing_Py':
         if len(sys.argv) < 3:
             print(f"Usage: python Main.py {command} <filename> <data_dict>")
@@ -270,7 +340,7 @@ def main():
         data_dict = sys.argv[3]
         serializing_Py(filename, data_dict)
     elif command == 'deserializingSerializing_Py':
-        if len(sys.argv) < 17:
+        if len(sys.argv) < 23:
             print(f"Usage: python Main.py {command} <filename> <stringValue> <floatValue> <int8Value>")
             sys.exit(1)
         stringValue = sys.argv[3]
@@ -288,11 +358,18 @@ def main():
         boolValue = bool(sys.argv[15])
         charValue = sys.argv[16]
         complexValue = complex(sys.argv[17])
+        decimalValue = Decimal(sys.argv[18])
+        fractionValue = Fraction(sys.argv[19])
+        bigIntValue = int(sys.argv[20])
+        nanValue = float(sys.argv[21])
+        durationValue = timedelta(seconds=float(sys.argv[22]))
+        datetimeValue = datetime.fromisoformat(sys.argv[23])
         deserializingSerializing_Py(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value,
-                                    uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue)
+                                    uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
+                                    decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
 
     elif command == 'deserializing_Py':
-        if len(sys.argv) < 17:
+        if len(sys.argv) < 23:
             print(f"Usage: python Main.py {command} <filename> <stringValue> <floatValue> <int8Value>")
             sys.exit(1)
         stringValue = sys.argv[3]
@@ -310,8 +387,15 @@ def main():
         boolValue = bool(sys.argv[15])
         charValue = sys.argv[16]
         complexValue = complex(sys.argv[17])
+        decimalValue = Decimal(sys.argv[18])
+        fractionValue = Fraction(sys.argv[19])
+        bigIntValue = int(sys.argv[20])
+        nanValue = float(sys.argv[21])
+        durationValue = timedelta(seconds=float(sys.argv[22]))
+        datetimeValue = datetime.fromisoformat(sys.argv[23])
         deserializing_Py(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value,
-                         uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue)
+                         uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
+                         decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
 
     else:
         print(f"Unknown function: {command}")
