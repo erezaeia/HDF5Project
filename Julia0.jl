@@ -1,5 +1,8 @@
 using MAT
 using JSON
+using Dates
+using Base.MathConstants: pi
+using Random
 
 # This is a test change
 # Function to print the result of a test
@@ -12,13 +15,20 @@ function TestResult(x::Bool, S::String)
 end
 # Function for selfTesting
 function selfTesting(filename::String, stringValue::String, floatValue::Float64, int8Value::Int8, uint8Value::UInt8, int16Value::Int16, uint16Value::UInt16, int32Value::Int32,
-    uint32Value::UInt32, int64Value::Int64, uint64Value::UInt64, int128Value::Int128, uint128Value::UInt128, float16Value::Float16, float32Value::Float32, boolValue::Bool, charValue::Char, complexValue::Complex)
+    uint32Value::UInt32, int64Value::Int64, uint64Value::UInt64, int128Value::Int128, uint128Value::UInt128, float16Value::Float16, float32Value::Float32, boolValue::Bool, charValue::Char, complexValue::Complex,
+    decimalValue::BigFloat, fractionValue::Rational{Int}, bigIntValue::BigInt, nanValue::Float64, durationValue::Millisecond, datetimeValue::DateTime)
+    
 
     # Convert Int128 and UInt128 to strings
     int128Str = string(int128Value)
     uint128Str = string(uint128Value)
     # Convert Float16 to Float32 for compatibility with MAT
     float16AsFloat32 = Float32(float16Value)
+
+    # Convert duration to milliseconds as Int
+    durationValueAsInt = Int(durationValue.value)
+    # Convert DateTime to ISO string
+    datetimeValueAsString = Dates.format(datetimeValue, "yyyy-mm-ddTHH:MM:SS")
 
     # Serialize data to a .MAT file
     matwrite(filename, Dict(
@@ -38,84 +48,50 @@ function selfTesting(filename::String, stringValue::String, floatValue::Float64,
         "float32_data" => float32Value,
         "bool_data" => boolValue,
         "char_data" => string(charValue),
-        "complex_data" => string(complexValue)
+        "complex_data" => string(complexValue),
+        "decimal_data" => string(decimalValue),  # BigFloat stored as a string
+        "fraction_data" => string(fractionValue),  # Fraction stored as a string
+        "bigint_data" => string(bigIntValue),  # BigInt stored as a string
+        "nan_data" => nanValue,
+        "duration_data" => durationValueAsInt,  # Store as milliseconds
+        "datetime_data" => datetimeValueAsString  # Store as ISO string
     ))
 
     # Deserialize data from the .MAT file
     data = matread(filename)
 
-    # Deserialize and test the string
-    mystringB = data["string_data"]
-    TestResult(stringValue == mystringB, "String")
-
-    # Deserialize and test the float
-    myFloatB = data["float_data"]
-    TestResult(myFloatB == floatValue, "Float")
-
-    # Deserialize and test the int8
-    myInt8B = data["int8_data"]
-    TestResult(myInt8B == int8Value, "Int8")
-
-    # Deserialize and test the uint8
-    myUInt8B = data["uint8_data"]
-    TestResult(myUInt8B == uint8Value, "UInt8")
-
-    # Deserialize and test the int16
-    myInt16B = data["int16_data"]
-    TestResult(myInt16B == int16Value, "Int16")
-
-    # Deserialize and test the uint16
-    myUInt16B = data["uint16_data"]
-    TestResult(myUInt16B == uint16Value, "UInt16")
-
-    # Deserialize and test the int32
-    myInt32B = data["int32_data"]
-    TestResult(myInt32B == int32Value, "Int32")
-
-    # Deserialize and test the uint32
-    myUInt32B = data["uint32_data"]
-    TestResult(myUInt32B == uint32Value, "UInt32")
-
-    # Deserialize and test the int64
-    myInt64B = data["int64_data"]
-    TestResult(myInt64B == int64Value, "Int64")
-
-    # Deserialize and test the uint64
-    myUInt64B = data["uint64_data"]
-    TestResult(myUInt64B == uint64Value, "UInt64")
-
-    # Deserialize and test the int128
-    myInt128B = parse(Int128, data["int128_data"])
-    TestResult(myInt128B == int128Value, "Int128")
-
-    # Deserialize and test the uint128
-    myUInt128B = parse(UInt128, data["uint128_data"])
-    TestResult(myUInt128B == uint128Value, "UInt128")
-
-    # Deserialize and test the float16
-    myFloat16B = data["float16_data"]
-    TestResult(myFloat16B == float16Value, "Float16")
-
-    # Deserialize and test the float32
-    myFloat32B = data["float32_data"]
-    TestResult(myFloat32B == float32Value, "Float32")
-
-    # Deserialize and test the bool
-    myBoolB = data["bool_data"]
-    TestResult(myBoolB == boolValue, "Bool")
-
-    # Deserialize and test the char
-    myCharB = data["char_data"][1]
-    TestResult(myCharB == charValue, "Char")
-
-    # Deserialize and test the complex
-    myComplexB = parse(Complex{Float64}, data["complex_data"])
-    TestResult(myComplexB == complexValue, "Complex")
+    # Test the deserialized values
+    TestResult(stringValue == data["string_data"], "String")
+    TestResult(floatValue == data["float_data"], "Float")
+    TestResult(int8Value == data["int8_data"], "Int8")
+    TestResult(uint8Value == data["uint8_data"], "UInt8")
+    TestResult(int16Value == data["int16_data"], "Int16")
+    TestResult(uint16Value == data["uint16_data"], "UInt16")
+    TestResult(int32Value == data["int32_data"], "Int32")
+    TestResult(uint32Value == data["uint32_data"], "UInt32")
+    TestResult(int64Value == data["int64_data"], "Int64")
+    TestResult(uint64Value == data["uint64_data"], "UInt64")
+    TestResult(int128Value == parse(Int128, data["int128_data"]), "Int128")
+    TestResult(uint128Value == parse(UInt128, data["uint128_data"]), "UInt128")
+    TestResult(float16Value == Float16(data["float16_data"]), "Float16")
+    TestResult(float32Value == data["float32_data"], "Float32")
+    TestResult(boolValue == data["bool_data"], "Bool")
+    TestResult(charValue == Char(data["char_data"]), "Char")
+    TestResult(complexValue == parse(Complex{Float64}, data["complex_data"]), "Complex")
+    TestResult(decimalValue == parse(BigFloat, data["decimal_data"]), "Decimal")
+    TestResult(fractionValue == parse(Rational{Int}, data["fraction_data"]), "Fraction")
+    TestResult(bigIntValue == parse(BigInt, data["bigint_data"]), "BigInt")
+    TestResult(isnan(data["nan_data"]), "NaN")
+    TestResult(durationValue == Millisecond(data["duration_data"]), "Duration")
+    TestResult(datetimeValue == DateTime(data["datetime_data"]), "DateTime")
 
 end
 # Function for serialize_data
 function serialize_data(filename::String, data_dict::Dict{String, Any})
     try
+        # Ensure nan_data is set to NaN
+        data_dict["nan_data"] = NaN
+
         matwrite(filename, data_dict)
         println("The data has been serialized through Julia!")
     catch e
@@ -123,7 +99,7 @@ function serialize_data(filename::String, data_dict::Dict{String, Any})
     end
 end
 # Function for deserialize_data
-function deserialize_data(filename::String, originalString::String, originalFloat::Float64, originalInt8::Int8, originalUInt8::UInt8, originalInt16::Int16, originalUInt16::UInt16, originalInt32::Int32, originalUInt32::UInt32, originalInt64::Int64, originalUInt64::UInt64, originalFloat16::Float16, originalFloat32::Float32, originalBool::Bool, originalChar::Char, originalComplex::Complex)
+function deserialize_data(filename::String, originalString::String, originalFloat::Float64, originalInt8::Int8, originalUInt8::UInt8, originalInt16::Int16, originalUInt16::UInt16, originalInt32::Int32, originalUInt32::UInt32, originalInt64::Int64, originalUInt64::UInt64, originalFloat16::Float16, originalFloat32::Float32, originalBool::Bool, originalChar::Char, originalComplex::Complex, originalDecimal::BigFloat, originalFraction::Rational{Int}, originalBigInt::BigInt, originalNan::Float64, originalDuration::Millisecond, originalDatetime::DateTime)
     try
         # Open the .mat file for reading
         data = matread(filename)
@@ -159,8 +135,6 @@ function deserialize_data(filename::String, originalString::String, originalFloa
                 TestResult(int64Value == originalInt64, "Int64")
             elseif key == "uint64_data"
                 uint64Value = value
-                println(uint64Value)
-                println(originalUInt64)
                 TestResult(uint64Value == originalUInt64, "UInt64")
             elseif key == "float16_data"
                 float16Value = Float16(value)
@@ -183,6 +157,32 @@ function deserialize_data(filename::String, originalString::String, originalFloa
                     complexValue = value
                 end
                 TestResult(complexValue == originalComplex, "Complex")
+            elseif key == "decimal_data"
+                setprecision(256)
+                decimalValue = parse(BigFloat, value)
+                TestResult(decimalValue == originalDecimal, "Decimal")
+            elseif key == "fraction_data"
+                fractionValue = parse(Rational{Int}, value)
+                TestResult(fractionValue == originalFraction, "Fraction")
+            elseif key == "bigint_data"
+                # If the string has a decimal point, remove it
+                if occursin(".", value)
+                    decoded_value = split(value, ".")[1]  # Keep only the part before the decimal point
+                end
+                # Convert the decoded string to a BigInt
+                bigIntValue = parse(BigInt, decoded_value)
+                TestResult(bigIntValue == originalBigInt, "BigInt")
+
+            elseif key == "nan_data"
+                nanValue = value
+                TestResult(isnan(nanValue), "NaN")
+            elseif key == "duration_data"
+                # Convert the duration value from seconds to milliseconds
+                durationValue = Millisecond(Int(round(value * 1000)))
+                TestResult(durationValue == originalDuration, "Duration")
+            elseif key == "datetime_data"
+                datetimeValue = DateTime(value)
+                TestResult(datetimeValue == originalDatetime, "DateTime")
             else
                 println("Unknown data type for key: $key")
             end
@@ -192,7 +192,7 @@ function deserialize_data(filename::String, originalString::String, originalFloa
     end
 end
 # Function for deserializeSerialize_data
-function deserializeSerialize_data(filename::String, originalString::String, originalFloat::Float64, originalInt8::Int8, originalUInt8::UInt8, originalInt16::Int16, originalUInt16::UInt16, originalInt32::Int32, originalUInt32::UInt32, originalInt64::Int64, originalUInt64::UInt64, originalFloat16::Float16, originalFloat32::Float32, originalBool::Bool, originalChar::Char, originalComplex::Complex)
+function deserializeSerialize_data(filename::String, originalString::String, originalFloat::Float64, originalInt8::Int8, originalUInt8::UInt8, originalInt16::Int16, originalUInt16::UInt16, originalInt32::Int32, originalUInt32::UInt32, originalInt64::Int64, originalUInt64::UInt64, originalFloat16::Float16, originalFloat32::Float32, originalBool::Bool, originalChar::Char, originalComplex::Complex, originalDecimal::BigFloat, originalFraction::Rational{Int}, originalBigInt::BigInt, originalNan::Float64, originalDuration::Millisecond, originalDatetime::DateTime)
     try
         # Open the .mat file for reading
         data = matread(filename)
@@ -259,6 +259,36 @@ function deserializeSerialize_data(filename::String, originalString::String, ori
                 complexValue = parse(Complex{Float64}, value)
                 TestResult(complexValue == originalComplex, "Complex")
                 data["complex_data"] = complexValue
+            elseif key == "decimal_data"
+                setprecision(256)
+                decimalValue = parse(BigFloat, value)
+                TestResult(decimalValue == originalDecimal, "Decimal")
+                data["decimal_data"] = string(decimalValue)
+            elseif key == "fraction_data"
+                fractionValue = parse(Rational{Int}, value)
+                TestResult(fractionValue == originalFraction, "Fraction")
+                # Convert the fraction back to a string with `/` instead of `//`
+                fraction_str = string(numerator(fractionValue)) * "/" * string(denominator(fractionValue))
+                
+                # Store the fraction as a string in the desired format
+                data["fraction_data"] = fraction_str
+            elseif key == "bigint_data"
+                bigIntValue = parse(BigInt, value)
+                TestResult(bigIntValue == originalBigInt, "BigInt")
+                data["bigint_data"] = string(bigIntValue)
+            elseif key == "nan_data"
+                nanValue = value
+                TestResult(isnan(nanValue), "NaN")
+                data["nan_data"] = nanValue
+            elseif key == "duration_data"
+                # Convert the duration value from seconds to milliseconds
+                durationValue = Millisecond(Int(round(value * 1000)))
+                TestResult(durationValue == originalDuration, "Duration")
+                data["duration_data"] = durationValue.value / 1000.0
+            elseif key == "datetime_data"
+                datetimeValue = DateTime(value)
+                TestResult(datetimeValue == originalDatetime, "DateTime")
+                data["datetime_data"] = string(datetimeValue)
             else
                 println("Unknown data type for key: $key")
             end
@@ -281,7 +311,7 @@ function MainFunction()
     filename = ARGS[2]
     
     if command == "selfTesting"
-        if length(ARGS) < 19
+        if length(ARGS) < 25
             println("Usage: julia combined_functions.jl selfTesting <filename> <stringValue> <floatValue> <int8Value>")
             return
         end
@@ -302,7 +332,13 @@ function MainFunction()
         boolValue = ARGS[17] == "true" ? true : false
         charValue = ARGS[18][1]
         complexValue = parse(Complex{Float64}, ARGS[19])
-        selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, int128Value, uint128Value, float16Value, float32Value, boolValue, charValue, complexValue)
+        decimalValue = parse(BigFloat, ARGS[20])  # Parse string to BigFloat
+        fractionValue = parse(Rational{Int}, ARGS[21])  # Parse string to Rational
+        bigIntValue = parse(BigInt, ARGS[22])  # Parse string to BigInt
+        nanValue = parse(Float64, ARGS[23])
+        durationValue = Millisecond(round(Int, parse(Float64, ARGS[24]) * 1000))  # Convert seconds to milliseconds
+        datetimeValue = DateTime(ARGS[25])
+        selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, int128Value, uint128Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
     elseif command == "serialize_data"
         if length(ARGS) < 3
             println("Usage: julia combined_functions.jl serialize_data <filename> <data_dict>")
@@ -331,7 +367,13 @@ function MainFunction()
         boolValue = ARGS[15] == "true" ? true : false
         charValue = ARGS[16][1]
         complexValue = parse(Complex{Float64}, ARGS[17])
-        deserialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue)
+        decimalValue = parse(BigFloat, ARGS[18])  # Parse string to BigFloat
+        fractionValue = parse(Rational{Int}, ARGS[19])  # Parse string to Rational
+        bigIntValue = parse(BigInt, ARGS[20])  # Parse string to BigInt
+        nanValue = parse(Float64, ARGS[21])
+        durationValue = Millisecond(round(Int, parse(Float64, ARGS[22]) * 1000))  # Convert seconds to milliseconds
+        datetimeValue = DateTime(ARGS[23])
+        deserialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
     elseif command == "deserializeSerialize_data"
         if length(ARGS) < 17
             println("Usage: julia combined_functions.jl deserializeSerialize_JlMAT <filename> <stringValue> <floatValue> <int8Value>")
@@ -352,7 +394,13 @@ function MainFunction()
         boolValue = ARGS[15] == "true" ? true : false
         charValue = ARGS[16][1]
         complexValue = parse(Complex{Float64}, ARGS[17])
-        deserializeSerialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue)
+        decimalValue = parse(BigFloat, ARGS[18])  # Parse string to BigFloat
+        fractionValue = parse(Rational{Int}, ARGS[19])  # Parse string to Rational
+        bigIntValue = parse(BigInt, ARGS[20])  # Parse string to BigInt
+        nanValue = parse(Float64, ARGS[21])
+        durationValue = Millisecond(round(Int, parse(Float64, ARGS[22]) * 1000))  # Convert seconds to milliseconds
+        datetimeValue = DateTime(ARGS[23])
+        deserializeSerialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
     else
         println("Unknown command: $command")
     end
