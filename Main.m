@@ -9,7 +9,7 @@ function Main(varargin)
 
     % Call the specified function
     if strcmp(command, 'selfTesting')
-        if length(varargin) < 17
+        if length(varargin) < 23
             error('Usage: Main selfTesting <filename> <stringValue> <floatValue> <int8Value>');
         end
         stringValue = varargin{3};
@@ -27,7 +27,14 @@ function Main(varargin)
         boolValue = logical(varargin{15});
         charValue = varargin{16};
         complexValue = varargin{17};
-        selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue);
+        digits(50);
+        decimalValue = vpa(varargin{18}); 
+        fractionValue = sym(varargin{19}); 
+        bigIntValue = vpa(varargin{20}); 
+        nanValue = varargin{21}; % NaN value
+        durationValue = seconds(varargin{22}); % Store duration as seconds
+        datetimeValue = datetime(varargin{23}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+        selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue);
        
     elseif strcmp(command, 'serialize_data')
         if length(varargin) < 3
@@ -36,7 +43,7 @@ function Main(varargin)
         data_dict = varargin{3};
         serialize_data(filename, data_dict);
     elseif strcmp(command, 'deserialize_data')
-        if length(varargin) < 17
+        if length(varargin) < 23
             error('Usage: Main deserialize_data <filename> <stringValue> <floatValue> <int8Value>');
         end
         stringValue = varargin{3};
@@ -54,10 +61,17 @@ function Main(varargin)
         boolValue = logical(varargin{15});
         charValue = varargin{16};
         complexValue = varargin{17};
-        deserialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue);
+        digits(50);
+        decimalValue = vpa(varargin{18}); 
+        fractionValue = sym(varargin{19}); 
+        bigIntValue = vpa(varargin{20}); 
+        nanValue = varargin{21}; % NaN value
+        durationValue = seconds(varargin{22}); % Store duration as seconds
+        datetimeValue = datetime(varargin{23}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+        deserialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue);
         
     elseif strcmp(command, 'deserializeSerialize_data')
-        if length(varargin) < 17
+        if length(varargin) < 23
             error('Usage: Main deserializeSerialize_data <filename> <stringValue> <floatValue> <int8Value>');
         end
         stringValue = varargin{3};
@@ -75,15 +89,29 @@ function Main(varargin)
         boolValue = logical(varargin{15});
         charValue = varargin{16};
         complexValue = varargin{17};
-        deserializeSerialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue);
+        digits(50);
+        decimalValue = vpa(varargin{18}); 
+        fractionValue = sym(varargin{19}); 
+        bigIntValue = vpa(varargin{20}); 
+        nanValue = varargin{21}; % NaN value
+        durationValue = seconds(varargin{22}); % Store duration as seconds
+        datetimeValue = datetime(varargin{23}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+        deserializeSerialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue);
     else
         error('Unknown command: %s', command);
     end
 end
 
-function selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue)
+function selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
+    bigIntValue = string(bigIntValue);
+    decimalValue = string(decimalValue);
+    fractionValue = string(fractionValue);
     % Saving the data
-    save(filename, 'floatValue', 'stringValue', 'int8Value','uint8Value','int16Value','uint16Value','int32Value','uint32Value','int64Value','uint64Value', 'float16Value', 'float32Value', 'boolValue', 'charValue', 'complexValue', '-v7.3');
+    save(filename, 'floatValue', 'stringValue', 'int8Value','uint8Value','int16Value','uint16Value','int32Value','uint32Value','int64Value','uint64Value', 'float16Value', 'float32Value', 'boolValue', 'charValue', 'complexValue', 'decimalValue', 'fractionValue', 'bigIntValue', 'nanValue', 'durationValue', 'datetimeValue', '-v7.3');
+    
+    bigIntValue = vpa(bigIntValue);
+    decimalValue = vpa(decimalValue);
+    fractionValue = sym(fractionValue);
 
     % Loading the data
     data = load(filename);
@@ -104,7 +132,13 @@ function selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, i
     loadedBoolValue = data.boolValue;
     loadedCharValue = data.charValue;
     loadedComplexValue = data.complexValue;
-    
+    loadedDecimalValue = data.decimalValue;
+    loadedFractionValue = data.fractionValue;
+    loadedBigIntValue = data.bigIntValue;
+    loadedNanValue = data.nanValue;
+    loadedDurationValue = data.durationValue;
+    loadedDatetimeValue = data.datetimeValue;
+    loadedDatetimeValue = datetime(loadedDatetimeValue, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
 
     TestResult(strcmp(loadedStringValue, stringValue), 'String');
     TestResult(loadedFloatValue == floatValue, 'Float');
@@ -121,6 +155,12 @@ function selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, i
     TestResult(loadedBoolValue == boolValue, 'Bool');
     TestResult(strcmp(loadedCharValue, charValue), 'Char');
     TestResult(loadedComplexValue == complexValue, 'Complex');
+    TestResult(vpa(loadedDecimalValue) == decimalValue, 'Decimal');
+    TestResult(sym(loadedFractionValue) == fractionValue, 'Fraction');
+    TestResult(vpa(loadedBigIntValue) == bigIntValue, 'BigInt');
+    TestResult(isnan(loadedNanValue), 'NaN');
+    TestResult(loadedDurationValue == durationValue, 'Duration');
+    TestResult(loadedDatetimeValue == datetimeValue, 'Datetime');
     
 end
 
@@ -132,6 +172,7 @@ function serialize_data(filename, data_dict)
         % Ensure that uint64 and int64 types are correctly preserved
         data_struct.uint64_data = uint64(data_struct.uint64_data);
         data_struct.int64_data = int64(data_struct.int64_data);
+        data_struct.nan_data = NaN;
 
         % Save data to .mat file
         save(filename, '-struct', 'data_struct', '-v7.3');
@@ -141,7 +182,7 @@ function serialize_data(filename, data_dict)
     end
 end
 
-function deserialize_data(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64, originalFloat16, originalFloat32, originalBool, originalChar, originalComplex)
+function deserialize_data(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64, originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime)
     try
         % Load data from the .mat file
         data = load(filename);
@@ -195,6 +236,26 @@ function deserialize_data(filename, originalString, originalFloat, originalInt8,
             elseif strcmp(key, 'complex_data')
                 complexValue = complex(data.(key));
                 TestResult(complexValue == originalComplex, 'Complex');
+           elseif strcmp(key, 'decimal_data')
+                digits(50);
+                decimalValue = vpa(data.(key));
+                TestResult(decimalValue == originalDecimal, 'Decimal');
+            elseif strcmp(key, 'fraction_data')
+                fractionValue = sym(data.(key));
+                TestResult(fractionValue == originalFraction, 'Fraction');
+            elseif strcmp(key, 'bigint_data')
+                digits(50);
+                bigIntValue = vpa(data.(key));
+                TestResult(bigIntValue == originalBigInt, 'BigInt');
+            elseif strcmp(key, 'nan_data')
+                nanValue = data.(key);
+                TestResult(isnan(nanValue), 'NaN');
+            elseif strcmp(key, 'duration_data')
+                durationValue = seconds(data.(key));
+                TestResult(durationValue == originalDuration, 'Duration');
+            elseif strcmp(key, 'datetime_data')
+                datetimeValue = datetime(data.(key), 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+                TestResult(datetimeValue == originalDatetime, 'Datetime');
             
             else
                 disp(['Unknown data type for key: ', key]);
@@ -205,7 +266,7 @@ function deserialize_data(filename, originalString, originalFloat, originalInt8,
     end
 end
 
-function deserializeSerialize_data(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex)
+function deserializeSerialize_data(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime)
     try
         % Load data from the .mat file
         data = load(filename);
@@ -252,8 +313,6 @@ function deserializeSerialize_data(filename, originalString, originalFloat, orig
                 data.int64_data = int64Value;
             elseif strcmp(key, 'uint64_data')
                 uint64Value = uint64(data.(key));
-                disp(uint64Value)
-                disp(originalUInt64)
                 TestResult(uint64Value == originalUInt64, 'UInt64');
                 data.uint64_data = uint64Value;
             elseif strcmp(key, 'float16_data')
@@ -276,6 +335,32 @@ function deserializeSerialize_data(filename, originalString, originalFloat, orig
                 complexValue = str2num(data.(key));
                 TestResult(isequal(complexValue, originalComplex), 'Complex');
                 data.complex_data = complexValue;
+            elseif strcmp(key, 'decimal_data')
+                digits(50);
+                decimalValue = vpa(data.(key));
+                TestResult(decimalValue == originalDecimal, 'Decimal');
+                data.decimal_data = char(decimalValue);
+            elseif strcmp(key, 'fraction_data')
+                 fractionValue = sym(data.(key));
+                 TestResult(fractionValue == originalFraction, 'Fraction');
+                 data.fraction_data = char(fractionValue);
+            elseif strcmp(key, 'bigint_data')
+                  digits(50);
+                  bigIntValue = vpa(data.(key));
+                  TestResult(bigIntValue == originalBigInt, 'BigInt');
+                  data.bigint_data = char(bigIntValue);
+            elseif strcmp(key, 'nan_data')
+                  nanValue = data.(key);
+                  TestResult(isnan(nanValue), 'NaN');
+                  data.nan_data = nanValue;
+            elseif strcmp(key, 'duration_data')
+                    durationValue = seconds(data.(key));
+                    TestResult(durationValue == originalDuration, 'Duration');
+                    data.duration_data = seconds(durationValue);
+            elseif strcmp(key, 'datetime_data')
+                   datetimeValue = datetime(data.(key), 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+                   TestResult(datetimeValue == originalDatetime, 'Datetime');
+                   data.datetime_data = datestr(datetimeValue, 'yyyy-mm-ddTHH:MM:SS');
             else
                 disp(['Unknown data type for key: ', key]);
             end
