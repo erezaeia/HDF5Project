@@ -1,14 +1,16 @@
 import json
+import ast
 import sys
 import numpy as np
 import scipy.io
 import h5py
 import scipy
 from numpy import int8
-from scipy.io import savemat, loadmat
-from datetime import datetime, timedelta, date
+from scipy.io import savemat
+from datetime import datetime, timedelta
 from decimal import Decimal
 from fractions import Fraction
+from collections import namedtuple
 
 def TestResult(x, S):
     if x:
@@ -16,7 +18,8 @@ def TestResult(x, S):
     else:
         print(f"\033[91m{S} ---> Failed!***\033[0m")
 def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
-                decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue):
+                decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue,dictValue, idDictValue, arrayValue, listValue, setValue, cellValue, frozensetValue, tupleValue, namedtupleValue,
+                bitsetValue, bitarrayValue, bytesValue, bytearrayValue, vectorValue, matrixValue):
     savemat(filename, {
         'string_data': stringValue,
         'float_data': np.array([floatValue], dtype=np.float64),
@@ -38,12 +41,39 @@ def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16V
         'bigint_data': str(bigIntValue),
         'nan_data': np.array([nanValue], dtype=np.float64),
         'duration_data': durationValue.total_seconds(),  # Store as seconds (float)
-        'datetime_data': datetimeValue.isoformat()  # Store as ISO string
+        'datetime_data': datetimeValue.isoformat(),  # Store as ISO string
+        # rest
+        'dict_data': dictValue,
+        'iddict_data': str(idDictValue),
+        'array_data': arrayValue,
+        'list_data': str(listValue),
+        'set_data': str(setValue),  # Store as set
+        'cell_data': np.array(cellValue, dtype=object),
+        'frozenset_data': str(frozensetValue),  # Store as frozenset
+        'tuple_data': str(tupleValue),  # Store as tuple
+        'namedtuple_data': str(namedtupleValue),  # Store as namedtuple
+        'bitset_data': str(bitsetValue),  # Store as set
+        'bitarray_data': bitarrayValue,
+        'bytes_data': bytes(bytesValue),
+        'bytearray_data': bytearrayValue,
+        'vector_data': vectorValue,
+        'matrix_data': matrixValue
         })
 
     data = scipy.io.loadmat(filename)
 
-    # Test the deserialized values
+    # Deserialize the strings back into dictionaries
+    reassembled_list = ast.literal_eval(data['list_data'].item())
+    reassembled_set = set(ast.literal_eval(data['set_data'].item()))
+    reassembled_frozenset = frozenset(eval(data['frozenset_data'].item()))
+    reassembled_tuple = tuple(ast.literal_eval(data['tuple_data'].item()))
+
+    reassembled_namedtuple = ast.literal_eval(data['namedtuple_data'].item())
+    MyTuple = namedtuple('MyTuple', [field for field, value in reassembled_namedtuple])
+    my_named_tuple = MyTuple(*[value for field, value in reassembled_namedtuple])
+    checkingNamedTuple = tuple((field, getattr(my_named_tuple, field)) for field in my_named_tuple._fields)
+    # # # NamedTuple
+    reassembled_bitset = set(ast.literal_eval(data['bitset_data'].item()))
     TestResult(stringValue == data['string_data'].item(), "String")
     TestResult(floatValue == data['float_data'].item(), "Float")
     TestResult(int8Value == data['int8_data'].item(), "Int8")
@@ -65,6 +95,20 @@ def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16V
     TestResult(np.isnan(data['nan_data'].item()), "NaN")
     TestResult(durationValue.total_seconds() == float(data['duration_data'].item()), "Duration")
     TestResult(datetimeValue.isoformat() == data['datetime_data'].item(), "Datetime")
+    TestResult(np.array_equal(arrayValue, data['array_data'][0]), "Array")
+    TestResult(cellValue == data['cell_data'].tolist(), "Cell")
+    TestResult(listValue == reassembled_list, "List")
+    TestResult(setValue == reassembled_set, "Set")
+    TestResult(frozenset(frozensetValue) == reassembled_frozenset, "Frozenset")
+    TestResult(tupleValue == reassembled_tuple, "Tuple")
+    TestResult(namedtupleValue == checkingNamedTuple, "NamedTuple")
+    TestResult(bitsetValue == reassembled_bitset, "BitSet")
+    TestResult(np.array_equal(bitarrayValue, data['bitarray_data'][0]), "BitArray")
+    print(bytesValue, data['bytes_data'])
+    TestResult(bytesValue == data['bytes_data'].tobytes(), "Bytes")
+    TestResult(bytearrayValue == bytearray(data['bytearray_data'].tobytes()), "Bytearray")
+    TestResult(np.array_equal(vectorValue, data['vector_data'][0]), "Vector")
+    TestResult(np.array_equal(matrixValue, data['matrix_data']), "Matrix")
 
 
 def serializing_Py(filename, data_dict):
@@ -306,7 +350,7 @@ def main():
     filename = sys.argv[2]
 
     if command == 'selfTesting':
-        if len(sys.argv) < 23:
+        if len(sys.argv) < 38:
             print(f"Usage: python Main.py {command} <filename> <stringValue> <floatValue> <int8Value>")
             sys.exit(1)
         stringValue = sys.argv[3]
@@ -330,9 +374,28 @@ def main():
         nanValue = float(sys.argv[21])
         durationValue = timedelta(seconds=float(sys.argv[22]))
         datetimeValue = datetime.fromisoformat(sys.argv[23])
+
+        dictValue = eval(sys.argv[24])
+        idDictValue = eval(sys.argv[25])
+        arrayValue = np.array(eval(sys.argv[26]))
+        listValue = eval(sys.argv[27])
+        setValue = set(eval(sys.argv[28]))
+        cellValue = eval(sys.argv[29])
+        frozensetValue = frozenset(eval(sys.argv[30]))
+        tupleValue = tuple(eval(sys.argv[31]))
+        namedtupleValue = tuple(eval(sys.argv[32]))
+        bitsetValue = set(eval(sys.argv[33]))
+        bitarrayValue = np.array(eval(sys.argv[34]), dtype=bool)
+        bytesValue = bytes(sys.argv[35], 'utf-8')
+        bytearrayValue = bytearray(sys.argv[36], 'utf-8')
+        vectorValue = np.array(eval(sys.argv[37]), dtype=float)
+        matrixValue = np.array(eval(sys.argv[38]), dtype=float)
+
         selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value,
                     uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
-                    decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
+                    decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue,
+                    dictValue, idDictValue, arrayValue, listValue, setValue, cellValue, frozensetValue, tupleValue, namedtupleValue,
+                    bitsetValue, bitarrayValue, bytesValue, bytearrayValue, vectorValue, matrixValue)
     elif command == 'serializing_Py':
         if len(sys.argv) < 3:
             print(f"Usage: python Main.py {command} <filename> <data_dict>")
