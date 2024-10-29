@@ -1,17 +1,27 @@
 function Main(varargin)
+    % Main function that serves as the entry point for various operations on HDF5 files.
+    % Accepts command-line arguments to specify the operation and input data.
+    % Usage: Main <command> <filename> [args...]
+
     % Check the number of input arguments
     if length(varargin) < 2
         error('Usage: Main <command> <filename> [args...]');
     end
 
+    % Assign command and filename from the input arguments
     command = varargin{1};
     filename = varargin{2};
 
-    % Call the specified function
+    % Call the specified function based on the command provided
     if strcmp(command, 'selfTesting')
+        % Verifies if the right number of arguments is provided for selfTesting
+        % Usage: Main selfTesting <filename> <stringValue> <floatValue> <int8Value> ...
+        
         if length(varargin) < 23
             error('Usage: Main selfTesting <filename> <stringValue> <floatValue> <int8Value>');
         end
+
+        % Parse various data types from input arguments
         stringValue = varargin{3};
         floatValue = double(varargin{4});
         int8Value = int8(varargin{5});
@@ -34,18 +44,30 @@ function Main(varargin)
         nanValue = varargin{21}; % NaN value
         durationValue = seconds(varargin{22}); % Store duration as seconds
         datetimeValue = datetime(varargin{23}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+        
+        % Calls selfTesting function with parsed values
         selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue);
        
     elseif strcmp(command, 'serialize_data')
+        % Serialize data to HDF5 format from a structured dictionary
+        % Usage: Main serialize_data <filename> <data_dict>
+        
         if length(varargin) < 3
             error('Usage: Main serialize_data <filename> <data_dict>');
         end
+
+        % Calls serialize_data function
         data_dict = varargin{3};
         serialize_data(filename, data_dict);
+
     elseif strcmp(command, 'deserialize_data')
+        % Deserializes data from HDF5 and verifies the stored values
+        % Usage: Main deserialize_data <filename> <stringValue> <floatValue> <int8Value> ...
+        
         if length(varargin) < 23
             error('Usage: Main deserialize_data <filename> <stringValue> <floatValue> <int8Value>');
         end
+
         stringValue = varargin{3};
         floatValue = double(varargin{4});
         int8Value = int8(varargin{5});
@@ -68,9 +90,14 @@ function Main(varargin)
         nanValue = varargin{21}; % NaN value
         durationValue = seconds(varargin{22}); % Store duration as seconds
         datetimeValue = datetime(varargin{23}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+        
+        % Calls deserialize_data function with parsed values
         deserialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue);
         
     elseif strcmp(command, 'deserializeSerialize_data')
+        % Reads data from HDF5 file, verifies values, and re-saves updated data
+        % Usage: Main deserializeSerialize_data <filename> <stringValue> <floatValue> <int8Value> ...
+        
         if length(varargin) < 23
             error('Usage: Main deserializeSerialize_data <filename> <stringValue> <floatValue> <int8Value>');
         end
@@ -96,24 +123,34 @@ function Main(varargin)
         nanValue = varargin{21}; % NaN value
         durationValue = seconds(varargin{22}); % Store duration as seconds
         datetimeValue = datetime(varargin{23}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss');
+        
+        % Calls deserializeSerialize_data function with parsed values
         deserializeSerialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue);
     else
+        % Display error for unknown command
         error('Unknown command: %s', command);
     end
 end
 
 function selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
+    % Tests the serialization and deserialization process throigh MATLAB-MATLAB.
+    % Saves various data types to a file, then loads and verifies them.
+
+    % Convert certain values to string format before saving because MATLAB
+    % doesn't support these data types
     bigIntValue = string(bigIntValue);
     decimalValue = string(decimalValue);
     fractionValue = string(fractionValue);
-    % Saving the data
+
+    % Saving the data to an HDF5 file
     save(filename, 'floatValue', 'stringValue', 'int8Value','uint8Value','int16Value','uint16Value','int32Value','uint32Value','int64Value','uint64Value', 'float16Value', 'float32Value', 'boolValue', 'charValue', 'complexValue', 'decimalValue', 'fractionValue', 'bigIntValue', 'nanValue', 'durationValue', 'datetimeValue', '-v7.3');
     
+    % Convert them back 
     bigIntValue = vpa(bigIntValue);
     decimalValue = vpa(decimalValue);
     fractionValue = sym(fractionValue);
 
-    % Loading the data
+    % Reloading data from the file and verifying correctness
     data = load(filename);
 
     % Extract the loaded data
@@ -165,6 +202,8 @@ function selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, i
 end
 
 function serialize_data(filename, data_dict)
+    % Converts data structure to HDF5 file.
+    % Uses JSON for decoding the data, then saves it in HDF5 format.
     try
         % Decode JSON string to a structure
         data_struct = jsondecode(data_dict);
@@ -183,6 +222,7 @@ function serialize_data(filename, data_dict)
 end
 
 function deserialize_data(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64, originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime)
+    % Loads data from HDF5 file and verifies against original values
     try
         % Load data from the .mat file
         data = load(filename);
@@ -190,6 +230,7 @@ function deserialize_data(filename, originalString, originalFloat, originalInt8,
         % Deserialize each item based on its key
         keys = fieldnames(data);
         for i = 1:length(keys)
+            % Perform checks and test results for each loaded data type
             key = keys{i};
             if strcmp(key, 'string_data')
                 stringValue = data.(key);
@@ -274,6 +315,7 @@ function deserializeSerialize_data(filename, originalString, originalFloat, orig
         % Deserialize each item based on its key
         keys = fieldnames(data);
         for i = 1:length(keys)
+             % Process and verify data, then re-save it in HDF5 format
             key = keys{i};
             if strcmp(key, 'string_data')
                 stringValue = data.(key);
@@ -375,6 +417,9 @@ function deserializeSerialize_data(filename, originalString, originalFloat, orig
 end
 
 function TestResult(x, S)
+    % Simple test reporting function
+    % Prints success message if x is true, otherwise prints failure message
+    
     % Function to print the result of a test
     if x
         fprintf("%s ---> Successful!\n", S);
