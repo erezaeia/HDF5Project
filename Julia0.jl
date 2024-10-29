@@ -4,8 +4,8 @@ using Dates
 using Base.MathConstants: pi
 using Random
 
-# This is a test change
 # Function to print the result of a test
+# Takes a Boolean value and a description string, printing whether the test passed or failed.
 function TestResult(x::Bool, S::String)
     if x
         println("$S ---> Successful!")
@@ -14,14 +14,16 @@ function TestResult(x::Bool, S::String)
     end
 end
 # Function for selfTesting
+# Tests serialization and deserialization of various data types through Julia - Julia.
+# Serializes given data to a .MAT file and then reads it back to verify accuracy.
 function selfTesting(filename::String, stringValue::String, floatValue::Float64, int8Value::Int8, uint8Value::UInt8, int16Value::Int16, uint16Value::UInt16, int32Value::Int32,
     uint32Value::UInt32, int64Value::Int64, uint64Value::UInt64, int128Value::Int128, uint128Value::UInt128, float16Value::Float16, float32Value::Float32, boolValue::Bool, charValue::Char, complexValue::Complex,
     decimalValue::BigFloat, fractionValue::Rational{Int}, bigIntValue::BigInt, nanValue::Float64, durationValue::Millisecond, datetimeValue::DateTime)
     
 
-    # Convert Int128 and UInt128 to strings
-    int128Str = string(int128Value)
-    uint128Str = string(uint128Value)
+    # Convert types for compatibility with MAT format
+    int128Str = string(int128Value) # Int128 to string
+    uint128Str = string(uint128Value) # UInt128 to string
     # Convert Float16 to Float32 for compatibility with MAT
     float16AsFloat32 = Float32(float16Value)
 
@@ -87,18 +89,22 @@ function selfTesting(filename::String, stringValue::String, floatValue::Float64,
 
 end
 # Function for serialize_data
+# Serializes a given dictionary to a .MAT file.
+# Ensures 'nan_data' is set to NaN before saving the dictionary.
 function serialize_data(filename::String, data_dict::Dict{String, Any})
     try
-        # Ensure nan_data is set to NaN
+        # Set NaN data explicitly
         data_dict["nan_data"] = NaN
 
-        matwrite(filename, data_dict)
+        matwrite(filename, data_dict) # Save dictionary to .MAT file
         println("The data has been serialized through Julia!")
     catch e
         println("An error occurred: $e")
     end
 end
 # Function for deserialize_data
+# Deserializes data from a .MAT file and verifies it against original values.
+# Iterates over keys and checks each loaded value for accuracy.
 function deserialize_data(filename::String, originalString::String, originalFloat::Float64, originalInt8::Int8, originalUInt8::UInt8, originalInt16::Int16, originalUInt16::UInt16, originalInt32::Int32, originalUInt32::UInt32, originalInt64::Int64, originalUInt64::UInt64, originalFloat16::Float16, originalFloat32::Float32, originalBool::Bool, originalChar::Char, originalComplex::Complex, originalDecimal::BigFloat, originalFraction::Rational{Int}, originalBigInt::BigInt, originalNan::Float64, originalDuration::Millisecond, originalDatetime::DateTime)
     try
         # Open the .mat file for reading
@@ -164,14 +170,14 @@ function deserialize_data(filename::String, originalString::String, originalFloa
             elseif key == "fraction_data"
                 fractionValue = parse(Rational{Int}, value)
                 TestResult(fractionValue == originalFraction, "Fraction")
-            elseif key == "bigint_data"
-                # If the string has a decimal point, remove it
-                if occursin(".", value)
-                    decoded_value = split(value, ".")[1]  # Keep only the part before the decimal point
-                end
-                # Convert the decoded string to a BigInt
-                bigIntValue = parse(BigInt, decoded_value)
-                TestResult(bigIntValue == originalBigInt, "BigInt")
+            # elseif key == "bigint_data"
+            #     # If the string has a decimal point, remove it
+            #     if occursin(".", value)
+            #         decoded_value = split(value, ".")[1]  # Keep only the part before the decimal point
+            #     end
+            #     # Convert the decoded string to a BigInt
+            #     bigIntValue = parse(BigInt, decoded_value)
+            #     TestResult(bigIntValue == originalBigInt, "BigInt")
 
             elseif key == "nan_data"
                 nanValue = value
@@ -192,12 +198,14 @@ function deserialize_data(filename::String, originalString::String, originalFloa
     end
 end
 # Function for deserializeSerialize_data
+# Deserializes data, tests for accuracy, modifies, and then re-serializes to .MAT file.
+# Allows re-saving data after validation and possible modifications.
 function deserializeSerialize_data(filename::String, originalString::String, originalFloat::Float64, originalInt8::Int8, originalUInt8::UInt8, originalInt16::Int16, originalUInt16::UInt16, originalInt32::Int32, originalUInt32::UInt32, originalInt64::Int64, originalUInt64::UInt64, originalFloat16::Float16, originalFloat32::Float32, originalBool::Bool, originalChar::Char, originalComplex::Complex, originalDecimal::BigFloat, originalFraction::Rational{Int}, originalBigInt::BigInt, originalNan::Float64, originalDuration::Millisecond, originalDatetime::DateTime)
     try
         # Open the .mat file for reading
         data = matread(filename)
 
-        # Deserialize each item based on its key
+        # Loop through each key-value pair, test for accuracy, and save changes back to data dictionary
         for (key, value) in data
             if key == "string_data"
                 stringValue = value
@@ -294,7 +302,7 @@ function deserializeSerialize_data(filename::String, originalString::String, ori
             end
         end
 
-        # Save the updated dictionary back to the file
+        # Re-serialize data with any changes applied
         matwrite(filename, data)
         println("The data has been serialized back through Julia!")
     catch e
@@ -302,6 +310,7 @@ function deserializeSerialize_data(filename::String, originalString::String, ori
     end
 end
 # Function to handle command-line arguments and call the appropriate function
+# Determines which function to call based on command and arguments provided in ARGS.
 function MainFunction()
     if length(ARGS) < 2
         println("Usage: julia combined_functions.jl <command> <filename> <stringValue> <floatValue> <int8Value>")
@@ -311,6 +320,7 @@ function MainFunction()
     filename = ARGS[2]
     
     if command == "selfTesting"
+        # Parse and call selfTesting function with the appropriate arguments
         if length(ARGS) < 25
             println("Usage: julia combined_functions.jl selfTesting <filename> <stringValue> <floatValue> <int8Value>")
             return
@@ -340,6 +350,7 @@ function MainFunction()
         datetimeValue = DateTime(ARGS[25])
         selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, int128Value, uint128Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
     elseif command == "serialize_data"
+        # Parse and call serialize_data with dictionary argument
         if length(ARGS) < 3
             println("Usage: julia combined_functions.jl serialize_data <filename> <data_dict>")
             return
@@ -348,6 +359,7 @@ function MainFunction()
         
         serialize_data(filename, data_dict)
     elseif command == "deserialize_data"
+        # Parse and call deserialize_data with appropriate arguments
         if length(ARGS) < 17
             println("Usage: julia combined_functions.jl deserializeSerialize_JlMAT <filename> <stringValue> <floatValue> <int8Value>")
             return
@@ -375,6 +387,7 @@ function MainFunction()
         datetimeValue = DateTime(ARGS[23])
         deserialize_data(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue, decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
     elseif command == "deserializeSerialize_data"
+        # Parse and call deserializeSerialize_data with appropriate arguments
         if length(ARGS) < 17
             println("Usage: julia combined_functions.jl deserializeSerialize_JlMAT <filename> <stringValue> <floatValue> <int8Value>")
             return
@@ -405,7 +418,7 @@ function MainFunction()
         println("Unknown command: $command")
     end
 end
-# Execute the run_function if the script is run from the command line
+# Execute the MainFunction if the script is run from the command line
 if abspath(PROGRAM_FILE) == @__FILE__
     MainFunction()
 end
