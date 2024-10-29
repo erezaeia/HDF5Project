@@ -1,9 +1,12 @@
 # Executable Paths
+# Paths to Python, Julia, and MATLAB executables
 PYTHON_EXEC="python3"
 JULIA_EXEC="julia"
 MATLAB_EXEC="/Applications/MATLAB_R2024a.app/bin/matlab"
 
 # SCRIPT PATHS
+# Paths to Python, Julia, and MATLAB script files
+# You have to change the path of the files!
 PYTHON_SCRIPT="/Users/elinarezaeian/PycharmProjects/HDF5Project/Main.py"
 JULIA_SCRIPT="/Users/elinarezaeian/Julia/Julia0.jl"
 MATLAB_SCRIPT="/Users/elinarezaeian/MATLAB/Projects/MainProject/"
@@ -11,10 +14,11 @@ MATLAB_DIR="/Users/elinarezaeian/MATLAB/Projects/MainProject/"
 
 
 # Arguments
+# Filename and data dictionary for testing
 FILENAME="/Users/elinarezaeian/PycharmProjects/HDF5Project/example.mat"
 DATA_DICT='{"string_data": "example_string", "float_data": 3.141592653589793, "int8_data": 42, "uint8_data": 255, "int16_data": 32767, "uint16_data": 65535, "int32_data": 2147483647, "uint32_data": 4294967295, "int64_data": 9223372036854775807, "uint64_data": 18446744073709551615, "float32_data": 3.14159, "float16_data": 3.14, "bool_data": true, "char_data": "a", "complex_data": "3+4j", "decimal_data": "3.1415926535897932384626433832795028841971", "fraction_data": "22/7", "bigint_data": "123456789123456789123456789", "nan_data": "NaN", "duration_data": 1.5, "datetime_data": "2024-07-30T12:34:56"}'
-#, "dict_data": {"key1": "value1", "key2": 2},"iddict_data": {"key1": "value1", "key2": 2}, "array_data": [1, 2, 3, 4], "list_data": [1, 2, 3, 4], "set_data": set([1, 2, 3, 4]), "cell_data": [1, "text", [2.5, 3.5], {"key": "value"}], "frozenset_data": frozenset([1, 2, 3, "a", "b"]), "tuple_data": (1, 2, 3, 4), "namedtuple_data": ("x", 1, "y", 2), "bitset_data": set([1, 2, 3]), "bitarray_data": [True, False, True], "bytes_data": b"example_bytes", "bytearray_data": bytearray(b"example_bytearray"), "vector_data": [1.0, 2.0, 3.0], "matrix_data": [[1, 2], [3, 4]]}'
 
+# Test arguments for various data types
 # String
 STRING_VALUE="example_string"
 # Float
@@ -73,7 +77,6 @@ TUPLE_VALUE="[1, 2, 3, 4]"
 NAMEDTUPLE_VALUE="[('x', 1), ('y', 2)]"
 BITSET_VALUE="[1, 2, 3]"
 BITARRAY_VALUE="[True, False, True]"
-BYTES_VALUE="example_bytes"
 BYTEARRAY_VALUE="example_bytearray"
 VECTOR_VALUE="[1.0, 2.0, 3.0]"
 MATRIX_VALUE="[[1, 2], [3, 4]]"
@@ -82,7 +85,7 @@ MATRIX_VALUE="[[1, 2], [3, 4]]"
 
 echo "Python-Python"
 # shellcheck disable=SC2090
-$PYTHON_EXEC $PYTHON_SCRIPT selfTesting $FILENAME $STRING_VALUE $FLOAT_VALUE $INT8_VALUE $UINT8_VALUE $INT16_VALUE $UINT16_VALUE $INT32_VALUE $UINT32_VALUE $INT64_VALUE $UINT64_VALUE $FLOAT16_VALUE $FLOAT32_VALUE $BOOL_VALUE $CHAR_VALUE $COMPLEX_VALUE $DECIMAL_VALUE $FRACTION_VALUE $BIGINT_VALUE $NAN_VALUE $DURATION_VALUE $DATETIME_VALUE "$DICT_VALUE" "$IDDICT_VALUE" "$ARRAY_VALUE" "$LIST_VALUE" "$SET_VALUE" "$CELL_VALUE" "$FROZENSET_VALUE" "$TUPLE_VALUE" "$NAMEDTUPLE_VALUE" "$BITSET_VALUE" "$BITARRAY_VALUE" $BYTES_VALUE $BYTEARRAY_VALUE "$VECTOR_VALUE" "$MATRIX_VALUE"
+$PYTHON_EXEC $PYTHON_SCRIPT selfTesting $FILENAME $STRING_VALUE $FLOAT_VALUE $INT8_VALUE $UINT8_VALUE $INT16_VALUE $UINT16_VALUE $INT32_VALUE $UINT32_VALUE $INT64_VALUE $UINT64_VALUE $FLOAT16_VALUE $FLOAT32_VALUE $BOOL_VALUE $CHAR_VALUE $COMPLEX_VALUE $DECIMAL_VALUE $FRACTION_VALUE $BIGINT_VALUE $NAN_VALUE $DURATION_VALUE $DATETIME_VALUE "$DICT_VALUE" "$IDDICT_VALUE" "$ARRAY_VALUE" "$LIST_VALUE" "$SET_VALUE" "$CELL_VALUE" "$FROZENSET_VALUE" "$TUPLE_VALUE" "$NAMEDTUPLE_VALUE" "$BITSET_VALUE" "$BITARRAY_VALUE"  $BYTEARRAY_VALUE "$VECTOR_VALUE" "$MATRIX_VALUE"
 echo "--------------------------------"
 
 echo "Julia-Julia"

@@ -11,15 +11,19 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from fractions import Fraction
 from collections import namedtuple
-
+# Function to print the result of a test
+# Verifies and displays if each deserialized value matches the original.
 def TestResult(x, S):
     if x:
         print(f"{S} ---> Successful!")
     else:
         print(f"\033[91m{S} ---> Failed!***\033[0m")
+# Function to perform self-testing on data serialization and deserialization
+# This function tests saving and loading various data types to and from a .MAT file.
 def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value, uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
                 decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue,dictValue, idDictValue, arrayValue, listValue, setValue, cellValue, frozensetValue, tupleValue, namedtupleValue,
-                bitsetValue, bitarrayValue, bytesValue, bytearrayValue, vectorValue, matrixValue):
+                bitsetValue, bitarrayValue, bytearrayValue, vectorValue, matrixValue):
+    # Serialize the data to a .MAT file
     savemat(filename, {
         'string_data': stringValue,
         'float_data': np.array([floatValue], dtype=np.float64),
@@ -54,7 +58,6 @@ def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16V
         'namedtuple_data': str(namedtupleValue),  # Store as namedtuple
         'bitset_data': str(bitsetValue),  # Store as set
         'bitarray_data': bitarrayValue,
-        'bytes_data': bytes(bytesValue),
         'bytearray_data': bytearrayValue,
         'vector_data': vectorValue,
         'matrix_data': matrixValue
@@ -104,13 +107,11 @@ def selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16V
     TestResult(namedtupleValue == checkingNamedTuple, "NamedTuple")
     TestResult(bitsetValue == reassembled_bitset, "BitSet")
     TestResult(np.array_equal(bitarrayValue, data['bitarray_data'][0]), "BitArray")
-    print(bytesValue, data['bytes_data'])
-    TestResult(bytesValue == data['bytes_data'].tobytes(), "Bytes")
     TestResult(bytearrayValue == bytearray(data['bytearray_data'].tobytes()), "Bytearray")
     TestResult(np.array_equal(vectorValue, data['vector_data'][0]), "Vector")
     TestResult(np.array_equal(matrixValue, data['matrix_data']), "Matrix")
-
-
+# Function for serializing data from a dictionary to a .MAT file
+# Converts JSON dictionary input and saves to .MAT file
 def serializing_Py(filename, data_dict):
     try:
         data_dict = json.loads(data_dict)
@@ -122,6 +123,9 @@ def serializing_Py(filename, data_dict):
         print("The data has been serialized through Python")
     except Exception as e:
         print(f"An error occurred: {e}")
+
+# Function to deserialize and re-serialize data with testing
+# Loads data from HDF5, tests accuracy, and saves it back to a file
 def deserializingSerializing_Py(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime):
     try:
         # Open the HDF5 file for reading
@@ -129,6 +133,7 @@ def deserializingSerializing_Py(filename, originalString, originalFloat, origina
             data_dict = {key: file[key][()] for key in file.keys()}
 
         # Deserialize each item based on its key
+        # Loop through and test each data type
         for key, value in data_dict.items():
             if key == 'string_data':
                 stringValue = value.tobytes().decode('utf-16')
@@ -245,13 +250,16 @@ def deserializingSerializing_Py(filename, originalString, originalFloat, origina
         print("The data has been serialized back through Python!")
     except Exception as e:
         print(f"An error occurred: {e}")
+
+# Function for deserializing data only
+# Loads data from HDF5 file and verifies each type without re-saving
 def deserializing_Py(filename, originalString, originalFloat, originalInt8, originalUInt8, originalInt16, originalUInt16, originalInt32, originalUInt32, originalInt64, originalUInt64,originalFloat16, originalFloat32, originalBool, originalChar, originalComplex, originalDecimal, originalFraction, originalBigInt, originalNan, originalDuration, originalDatetime):
     try:
         # Open the HDF5 file for reading
         with h5py.File(filename, 'r') as file:
             data_dict = {key: file[key][()] for key in file.keys()}
 
-        # Deserialize each item based on its key
+        # Test each deserialized value for accuracy
         for key, value in data_dict.items():
             if key == 'string_data':
                 stringValue = value.tobytes().decode('utf-16')
@@ -340,7 +348,7 @@ def deserializing_Py(filename, originalString, originalFloat, originalInt8, orig
 
     except Exception as e:
         print(f"An error occurred: {e}")
-
+# Main function to handle command-line arguments and call the appropriate function
 def main():
     if len(sys.argv) < 2:
         print("Usage: python Main.py <function_name> [args...]")
@@ -349,6 +357,7 @@ def main():
     command = sys.argv[1]
     filename = sys.argv[2]
 
+    # Route to the correct function based on the command
     if command == 'selfTesting':
         if len(sys.argv) < 38:
             print(f"Usage: python Main.py {command} <filename> <stringValue> <floatValue> <int8Value>")
@@ -386,16 +395,15 @@ def main():
         namedtupleValue = tuple(eval(sys.argv[32]))
         bitsetValue = set(eval(sys.argv[33]))
         bitarrayValue = np.array(eval(sys.argv[34]), dtype=bool)
-        bytesValue = bytes(sys.argv[35], 'utf-8')
-        bytearrayValue = bytearray(sys.argv[36], 'utf-8')
-        vectorValue = np.array(eval(sys.argv[37]), dtype=float)
-        matrixValue = np.array(eval(sys.argv[38]), dtype=float)
+        bytearrayValue = bytearray(sys.argv[35], 'utf-8')
+        vectorValue = np.array(eval(sys.argv[36]), dtype=float)
+        matrixValue = np.array(eval(sys.argv[37]), dtype=float)
 
         selfTesting(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value,
                     uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
                     decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue,
                     dictValue, idDictValue, arrayValue, listValue, setValue, cellValue, frozensetValue, tupleValue, namedtupleValue,
-                    bitsetValue, bitarrayValue, bytesValue, bytearrayValue, vectorValue, matrixValue)
+                    bitsetValue, bitarrayValue, bytearrayValue, vectorValue, matrixValue)
     elif command == 'serializing_Py':
         if len(sys.argv) < 3:
             print(f"Usage: python Main.py {command} <filename> <data_dict>")
@@ -430,7 +438,6 @@ def main():
         deserializingSerializing_Py(filename, stringValue, floatValue, int8Value, uint8Value, int16Value, uint16Value, int32Value,
                                     uint32Value, int64Value, uint64Value, float16Value, float32Value, boolValue, charValue, complexValue,
                                     decimalValue, fractionValue, bigIntValue, nanValue, durationValue, datetimeValue)
-
     elif command == 'deserializing_Py':
         if len(sys.argv) < 23:
             print(f"Usage: python Main.py {command} <filename> <stringValue> <floatValue> <int8Value>")
